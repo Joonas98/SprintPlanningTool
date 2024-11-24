@@ -33,7 +33,7 @@
         <tbody>
             @foreach (var participant in PlanningService.Participants)
             {
-                <tr class="@GetRowClass(participant)">
+                <tr>
                     <td>
                         @participant.Name
                         @if (participant.IsScrumMaster)
@@ -76,7 +76,6 @@
     private string? UserName; // Name retrieved from local storage
     private bool IsScrumMaster => PlanningService.Participants.Any(p => p.Name == UserName && p.IsScrumMaster);
 
-    // Initialize and add the user if they aren't already in the participants list
     protected override async Task OnInitializedAsync()
     {
         UserName = await LocalStorage.GetItemAsync<string>("userName");
@@ -87,18 +86,12 @@
         }
 
         // Subscribe to state changes
-        PlanningService.OnStateChanged += StateHasChanged;
+        PlanningService.OnStateChanged += async () => await InvokeAsync(StateHasChanged);
     }
 
     private void SelectPoint(string point)
     {
-        var participant = PlanningService.Participants.FirstOrDefault(p => p.Name == UserName);
-        if (participant != null)
-        {
-            participant.SelectedPoints = point;
-            // Notify the state change within the service
-            PlanningService.UpdateParticipantPoints(UserName, point);
-        }
+        PlanningService.UpdateParticipantPoints(UserName, point);
     }
 
     private void RevealPoints()
@@ -111,16 +104,6 @@
         PlanningService.Reset(UserName);
     }
 
-    private string GetRowClass(Participant participant)
-    {
-        if (PlanningService.PointsRevealed)
-        {
-            return "revealed"; // Styling for revealed rows
-        }
-
-        return participant.SelectedPoints == null ? "thinking" : "chosen";
-    }
-
     private void NavigateToNamePage()
     {
         NavigationManager.NavigateTo("/");
@@ -128,7 +111,6 @@
 
     public void Dispose()
     {
-        // Unsubscribe to prevent memory leaks
-        PlanningService.OnStateChanged -= StateHasChanged;
+        PlanningService.OnStateChanged -= async () => await InvokeAsync(StateHasChanged);
     }
 }

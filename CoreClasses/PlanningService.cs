@@ -3,7 +3,6 @@
 	public List<Participant> Participants { get; private set; } = new List<Participant>();
 	public bool PointsRevealed { get; private set; } = false;
 
-	// Event for notifying state changes
 	public event Action? OnStateChanged;
 
 	public void AddParticipant(string name, bool isScrumMaster = false)
@@ -19,6 +18,16 @@
 				SelectedPoints = null
 			});
 
+			RaiseStateChanged();
+		}
+	}
+
+	public void UpdateParticipantPoints(string name, string? points)
+	{
+		var participant = Participants.FirstOrDefault(p => p.Name == name);
+		if (participant != null)
+		{
+			participant.SelectedPoints = points;
 			RaiseStateChanged();
 		}
 	}
@@ -45,19 +54,9 @@
 		}
 	}
 
-	public void UpdateParticipantPoints(string name, string? points)
-	{
-		var participant = Participants.FirstOrDefault(p => p.Name == name);
-		if (participant != null)
-		{
-			participant.SelectedPoints = points;
-			RaiseStateChanged();
-		}
-	}
-
-	// Private method to safely invoke the event
 	private void RaiseStateChanged()
 	{
+		// Safely invoke the state change event
 		OnStateChanged?.Invoke();
 	}
 }
