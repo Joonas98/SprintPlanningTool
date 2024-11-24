@@ -1,0 +1,77 @@
+﻿@page "/"
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject PlanningService PlanningService
+@inject NavigationManager NavigationManager
+
+<div class="welcome-container">
+    <h1 class="title">Welcome to Sprint Planning</h1>
+
+    @if (string.IsNullOrEmpty(UserName))
+    {
+        <input @bind="InputName" placeholder="Enter your name" class="name-input" />
+        <button @onclick="SaveName" class="action-button">Save</button>
+        @if (ShowError)
+        {
+            <p class="error-text">Please enter your name before proceeding.</p>
+        }
+    }
+    else
+    {
+        <p class="greeting-text">Hello, @UserName!</p>
+        <button @onclick="EditName" class="action-button">Change Name</button>
+        <button @onclick="NavigateToPokerTable" class="navigate-button">Go to Poker Table</button>
+    }
+</div>
+
+@code {
+    private string? UserName;  // Stores the cached name
+    private string? InputName; // Stores the new name entered by the user
+    private bool IsInitialized = false; // Tracks whether the component has completed initialization
+    private bool ShowError = false; // Tracks whether to show the error message
+
+    // Load cached name when the component renders
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !IsInitialized)
+        {
+            UserName = await LocalStorage.GetItemAsync<string>("userName");
+            IsInitialized = true;
+            StateHasChanged(); // Refresh UI after retrieving the name
+        }
+    }
+
+    // Save the new name and update the cache
+    private async Task SaveName()
+    {
+        if (!string.IsNullOrEmpty(InputName))
+        {
+            UserName = InputName;
+
+            // Save the name locally
+            await LocalStorage.SetItemAsync("userName", UserName);
+
+            // Add the participant to the shared service
+            PlanningService.AddParticipant(UserName);
+
+            // Navigate to the Poker Table
+            NavigationManager.NavigateTo("/TablePage");
+        }
+        else
+        {
+            ShowError = true;
+        }
+    }
+
+    // Allow the user to edit their name
+    private void EditName()
+    {
+        InputName = UserName;
+        UserName = null;
+        ShowError = false; // Reset error when editing
+    }
+
+    private void NavigateToPokerTable()
+    {
+        NavigationManager.NavigateTo("/TablePage");
+    }
+}

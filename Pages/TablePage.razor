@@ -1,0 +1,134 @@
+﻿@page "/TablePage"
+@inject NavigationManager NavigationManager
+@inject PlanningService PlanningService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<button class="back-button" @onclick="NavigateToNamePage">Back</button>
+
+<h1 class="title">Sprint Planning</h1>
+
+<div class="main-container">
+    <div class="cards">
+        @foreach (var point in new[] { "0", "1", "2", "3", "5", "8", "13", "21", "?", "☕" })
+        {
+            var isSelected = point == PlanningService.Participants
+            .FirstOrDefault(p => p.Name == UserName)?.SelectedPoints;
+
+            <button @onclick="() => SelectPoint(point)"
+                    class="card-button @(isSelected ? "selected" : "")"
+                    disabled="@PlanningService.PointsRevealed">
+                <img src="/Sprites/PlanningPokerCardSmaller.png" alt="Card" class="card-image" />
+                <span class="card-text">@point</span>
+            </button>
+        }
+    </div>
+
+    <table class="participants-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Story Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var participant in PlanningService.Participants)
+            {
+                <tr class="@GetRowClass(participant)">
+                    <td>
+                        @participant.Name
+                        @if (participant.IsScrumMaster)
+                        {
+                            <span class="scrum-master-indicator">Scrum Master</span>
+                        }
+                    </td>
+                    <td>
+                        @if (PlanningService.PointsRevealed)
+                        {
+                            @participant.SelectedPoints
+                        }
+                        else
+                        {
+                            @if (participant.SelectedPoints == null)
+                            {
+                                <em>Thinking...</em>
+                            }
+                            else
+                            {
+                                <em>Hidden</em>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (IsScrumMaster)
+    {
+        <div class="controls">
+            <button @onclick="RevealPoints" class="control-button">Reveal Points</button>
+            <button @onclick="ResetPoints" class="control-button">Reset Points</button>
+        </div>
+    }
+</div>
+
+@code {
+    private string? UserName; // Name retrieved from local storage
+    private bool IsScrumMaster => PlanningService.Participants.Any(p => p.Name == UserName && p.IsScrumMaster);
+
+    // Initialize and add the user if they aren't already in the participants list
+    protected override async Task OnInitializedAsync()
+    {
+        UserName = await LocalStorage.GetItemAsync<string>("userName");
+
+        if (!string.IsNullOrEmpty(UserName) && !PlanningService.Participants.Any(p => p.Name == UserName))
+        {
+            PlanningService.AddParticipant(UserName);
+        }
+
+        // Subscribe to state changes
+        PlanningService.OnStateChanged += StateHasChanged;
+    }
+
+    private void SelectPoint(string point)
+    {
+        var participant = PlanningService.Participants.FirstOrDefault(p => p.Name == UserName);
+        if (participant != null)
+        {
+            participant.SelectedPoints = point;
+            // Notify the state change within the service
+            PlanningService.UpdateParticipantPoints(UserName, point);
+        }
+    }
+
+    private void RevealPoints()
+    {
+        PlanningService.RevealPoints(UserName);
+    }
+
+    private void ResetPoints()
+    {
+        PlanningService.Reset(UserName);
+    }
+
+    private string GetRowClass(Participant participant)
+    {
+        if (PlanningService.PointsRevealed)
+        {
+            return "revealed"; // Styling for revealed rows
+        }
+
+        return participant.SelectedPoints == null ? "thinking" : "chosen";
+    }
+
+    private void NavigateToNamePage()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe to prevent memory leaks
+        PlanningService.OnStateChanged -= StateHasChanged;
+    }
+}

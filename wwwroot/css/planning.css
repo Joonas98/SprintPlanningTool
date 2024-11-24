@@ -1,0 +1,258 @@
+﻿body {
+    font-family: Arial, sans-serif;
+    background-color: #e9f9e9;
+    color: #2e7d32;
+}
+
+.title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1b5e20;
+}
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.card-button {
+    position: relative;
+    width: 150px;
+    height: 200px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .card-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .card-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #000000;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.card-button.selected {
+    border: 3px solid #FFD700; /* Gold border */
+    transform: scale(1.1); /* Slightly enlarge the card */
+    box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.7); /* Rounded glow matching the card shape */
+    border-radius: 10px; /* Ensures shadow aligns with rounded corners */
+}
+
+.participants-table {
+    width: 80%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+    .participants-table th,
+    .participants-table td {
+        border: 1px solid #a5d6a7;
+        padding: 0.75rem;
+        text-align: left;
+    }
+
+    .participants-table th {
+        background-color: #66bb6a;
+        color: white;
+    }
+
+.controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.control-button {
+    background-color: #388e3c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .control-button:hover {
+        background-color: #2e7d32;
+    }
+
+/* Default table row styling */
+.participants-table tr {
+    transition: background-color 0.3s ease;
+}
+
+    /* Thinking (mild red) */
+    .participants-table tr.thinking {
+        background-color: #ffebee; /* Light red */
+    }
+
+    /* Chosen (brighter green) */
+    .participants-table tr.chosen {
+        background-color: #e8f5e9; /* Light green */
+    }
+
+    /* Revealed */
+    .participants-table tr.revealed {
+        background-color: #f3e5f5; /* Light purple  */
+    }
+
+    /* Indicates who is the SM */
+.scrum-master-indicator {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #FFD700; /* Gold color */
+    background-color: #2E8B57; /* Dark green for contrast */
+    padding: 0.2rem 0.4rem;
+    border-radius: 5px;
+    margin-left: 0.5rem;
+    display: inline-block;
+}
+
+.navigation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.navigate-button {
+    background-color: #66bb6a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    .navigate-button:hover {
+        background-color: #388e3c;
+    }
+
+    .navigate-button:focus {
+        outline: none;
+        box-shadow: 0 0 5px #388e3c;
+    }
+
+.back-button {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background-color: #66bb6a;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+    .back-button:hover {
+        background-color: #388e3c;
+    }
+
+    .back-button:focus {
+        outline: none;
+        box-shadow: 0 0 5px #388e3c;
+    }
+
+/* Center the entire container */
+.welcome-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* Full height of the viewport */
+    text-align: center;
+    gap: 1rem; /* Spacing between elements */
+}
+
+/* Title styling */
+.title {
+    font-size: 2rem;
+    color: #2E8B57; /* Dark green theme color */
+    margin-bottom: 1rem;
+}
+
+/* Greeting text styling */
+.greeting-text {
+    font-size: 1.25rem;
+    color: #555; /* Neutral text color */
+}
+
+/* Input field styling */
+.name-input {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 300px;
+    max-width: 80%; /* Responsive for smaller screens */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Button styling */
+.action-button, .navigate-button {
+    background-color: #66bb6a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    /* Hover effect for buttons */
+    .action-button:hover, .navigate-button:hover {
+        background-color: #388e3c;
+    }
+
+    /* Responsive button focus effect */
+    .action-button:focus, .navigate-button:focus {
+        outline: none;
+        box-shadow: 0 0 5px #388e3c;
+    }
+
+.error-text {
+    color: #ff5252; /* Bright red for error messages */
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
