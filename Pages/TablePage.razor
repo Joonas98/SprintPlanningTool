@@ -7,22 +7,7 @@
 
 <h1 class="title">Sprint Planning</h1>
 
-<div class="main-container">
-    <div class="cards">
-        @foreach (var point in new[] { "0", "1", "2", "3", "5", "8", "13", "21", "?", "☕" })
-        {
-            var isSelected = point == PlanningService.Participants
-            .FirstOrDefault(p => p.Name == UserName)?.SelectedPoints;
-
-            <button @onclick="() => SelectPoint(point)"
-                    class="card-button @(isSelected ? "selected" : "")"
-                    disabled="@PlanningService.PointsRevealed">
-                <img src="/Sprites/PlanningPokerCardSmaller.png" alt="Card" class="card-image" />
-                <span class="card-text">@point</span>
-            </button>
-        }
-    </div>
-
+<div class="main-container flex-container">
     <table class="participants-table">
         <thead>
             <tr>
@@ -70,6 +55,21 @@
             <button @onclick="ResetPoints" class="control-button">Reset Points</button>
         </div>
     }
+
+    <div class="cards">
+        @foreach (var point in new[] { "0", "1", "2", "3", "5", "8", "13", "21", "?", "☕" })
+        {
+            var isSelected = point == PlanningService.Participants
+            .FirstOrDefault(p => p.Name == UserName)?.SelectedPoints;
+
+            <button @onclick="() => SelectPoint(point)"
+                    class="card-button @(isSelected ? "selected" : "")"
+                    disabled="@PlanningService.PointsRevealed">
+                <img src="/Sprites/PlanningPokerCardSmaller.png" alt="Card" class="card-image" />
+                <span class="card-text">@point</span>
+            </button>
+        }
+    </div>
 </div>
 
 @code {
