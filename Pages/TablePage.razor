@@ -48,6 +48,13 @@
         </tbody>
     </table>
 
+    @if (PlanningService.PointsRevealed)
+    {
+        <div class="average-display">
+            <h3>Average Story Points: @AverageStoryPoints</h3>
+        </div>
+    }
+
     @if (IsScrumMaster)
     {
         <div class="controls">
@@ -75,6 +82,7 @@
 @code {
     private string? UserName; // Name retrieved from local storage
     private bool IsScrumMaster => PlanningService.Participants.Any(p => p.Name == UserName && p.IsScrumMaster);
+    private double? AverageStoryPoints => CalculateAverage();
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,6 +115,23 @@
     private void NavigateToNamePage()
     {
         NavigationManager.NavigateTo("/");
+    }
+
+    private double? CalculateAverage()
+    {
+        // Get all valid numeric selections
+        var numericSelections = PlanningService.Participants
+            .Where(p => int.TryParse(p.SelectedPoints, out _))
+            .Select(p => int.Parse(p.SelectedPoints))
+            .ToList();
+
+        // Calculate the average if there are valid numbers
+        if (numericSelections.Any())
+        {
+            return numericSelections.Average();
+        }
+
+        return null; // Return null if no valid numbers
     }
 
     public void Dispose()

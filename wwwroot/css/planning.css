@@ -20,7 +20,7 @@
 .flex-container {
     display: flex;
     flex-direction: column;
-    min-height: 90vh; /* Ensure the container spans the viewport height */
+    min-height: 90vh;
 }
 
 .participants-table {
@@ -43,7 +43,6 @@
     margin-top: auto; /* Push the cards section to the bottom */
     padding: 1rem 0; /* Optional padding for spacing */
 }
-
 
 .card-button {
     position: relative;
@@ -131,27 +130,22 @@
         background-color: #2e7d32;
     }
 
-/* Default table row styling */
 .participants-table tr {
     transition: background-color 0.3s ease;
 }
 
-    /* Thinking (mild red) */
     .participants-table tr.thinking {
         background-color: #ffebee; /* Light red */
     }
 
-    /* Chosen (brighter green) */
     .participants-table tr.chosen {
         background-color: #e8f5e9; /* Light green */
     }
 
-    /* Revealed */
     .participants-table tr.revealed {
         background-color: #f3e5f5; /* Light purple  */
     }
 
-    /* Indicates who is the SM */
 .scrum-master-indicator {
     font-size: 0.9rem;
     font-weight: bold;
@@ -213,42 +207,46 @@
         box-shadow: 0 0 5px #388e3c;
     }
 
-/* Center the entire container */
+.average-display {
+    margin: 1rem auto;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Landing page styling */
 .welcome-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh; /* Full height of the viewport */
+    height: 100vh;
     text-align: center;
-    gap: 1rem; /* Spacing between elements */
+    gap: 1rem;
 }
 
-/* Title styling */
 .title {
     font-size: 2rem;
     color: #2E8B57; /* Dark green theme color */
     margin-bottom: 1rem;
 }
 
-/* Greeting text styling */
 .greeting-text {
     font-size: 1.25rem;
-    color: #555; /* Neutral text color */
+    color: #555;
 }
 
-/* Input field styling */
 .name-input {
     padding: 0.5rem 1rem;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 5px;
     width: 300px;
-    max-width: 80%; /* Responsive for smaller screens */
+    max-width: 80%;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Button styling */
 .action-button, .navigate-button {
     background-color: #66bb6a;
     color: white;
@@ -260,12 +258,10 @@
     transition: background-color 0.3s ease;
 }
 
-    /* Hover effect for buttons */
     .action-button:hover, .navigate-button:hover {
         background-color: #388e3c;
     }
 
-    /* Responsive button focus effect */
     .action-button:focus, .navigate-button:focus {
         outline: none;
         box-shadow: 0 0 5px #388e3c;
