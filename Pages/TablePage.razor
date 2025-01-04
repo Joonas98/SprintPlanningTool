@@ -1,4 +1,4 @@
-﻿@page "/TablePage"
+﻿@page "/room/{RoomId}"
 @inject NavigationManager NavigationManager
 @inject PlanningService PlanningService
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
@@ -6,6 +6,8 @@
 <button class="back-button" @onclick="NavigateToNamePage">Back</button>
 
 <h1 class="title">Sprint Planning</h1>
+
+<p>Debug - Cards Disabled: @(Room?.PointsRevealed == true ? "Yes" : "No")</p>
 
 <div class="main-container flex-container">
     <table class="participants-table">
@@ -16,39 +18,42 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var participant in PlanningService.Participants)
+            @if (Room?.Participants != null)
             {
-                <tr>
-                    <td>
-                        @participant.Name
-                        @if (participant.IsScrumMaster)
-                        {
-                            <span class="scrum-master-indicator">Scrum Master</span>
-                        }
-                    </td>
-                    <td>
-                        @if (PlanningService.PointsRevealed)
-                        {
-                            @participant.SelectedPoints
-                        }
-                        else
-                        {
-                            @if (participant.SelectedPoints == null)
+                @foreach (var participant in Room.Participants)
+                {
+                    <tr>
+                        <td>
+                            @participant.Name
+                            @if (participant.IsScrumMaster)
                             {
-                                <em>Thinking...</em>
+                                <span class="scrum-master-indicator">Scrum Master</span>
+                            }
+                        </td>
+                        <td>
+                            @if (Room.PointsRevealed)
+                            {
+                                @participant.SelectedPoints
                             }
                             else
                             {
-                                <em>Hidden</em>
+                                @if (participant.SelectedPoints == null)
+                                {
+                                    <em>Thinking...</em>
+                                }
+                                else
+                                {
+                                    <em>Hidden</em>
+                                }
                             }
-                        }
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
 
-    @if (PlanningService.PointsRevealed)
+    @if (Room?.PointsRevealed == true)
     {
         <div class="average-display">
             <h3>Average Story Points: @AverageStoryPoints</h3>
@@ -66,31 +71,42 @@
     <div class="cards">
         @foreach (var point in new[] { "0", "1", "2", "3", "5", "8", "13", "21", "?", "☕" })
         {
-            var isSelected = point == PlanningService.Participants
+            var isSelected = point == Room?.Participants
             .FirstOrDefault(p => p.Name == UserName)?.SelectedPoints;
 
             <button @onclick="() => SelectPoint(point)"
                     class="card-button @(isSelected ? "selected" : "")"
-                    disabled="@PlanningService.PointsRevealed">
+                    disabled="@(Room?.PointsRevealed == true)">
                 <img src="/Sprites/PlanningPokerCardSmaller.png" alt="Card" class="card-image" />
                 <span class="card-text">@point</span>
             </button>
         }
     </div>
+
 </div>
 
 @code {
+    [Parameter]
+    public string RoomId { get; set; } = "";
+
+    private Room? Room => PlanningService.GetRoom(RoomId);
     private string? UserName; // Name retrieved from local storage
-    private bool IsScrumMaster => PlanningService.Participants.Any(p => p.Name == UserName && p.IsScrumMaster);
+    private bool IsScrumMaster => Room?.Participants.Any(p => p.Name == UserName && p.IsScrumMaster) ?? false;
     private double? AverageStoryPoints => CalculateAverage();
 
     protected override async Task OnInitializedAsync()
     {
         UserName = await LocalStorage.GetItemAsync<string>("userName");
 
-        if (!string.IsNullOrEmpty(UserName) && !PlanningService.Participants.Any(p => p.Name == UserName))
+        if (Room == null)
         {
-            PlanningService.AddParticipant(UserName);
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(UserName) && !Room.Participants.Any(p => p.Name == UserName))
+        {
+            PlanningService.AddParticipant(RoomId, UserName);
         }
 
         // Subscribe to state changes
@@ -99,17 +115,20 @@
 
     private void SelectPoint(string point)
     {
-        PlanningService.UpdateParticipantPoints(UserName, point);
+        if (!string.IsNullOrEmpty(RoomId) && !string.IsNullOrEmpty(UserName))
+        {
+            PlanningService.UpdateParticipantPoints(RoomId, UserName, point);
+        }
     }
 
     private void RevealPoints()
     {
-        PlanningService.RevealPoints(UserName);
+        PlanningService.RevealPoints(RoomId, UserName);
     }
 
     private void ResetPoints()
     {
-        PlanningService.Reset(UserName);
+        PlanningService.ResetRoom(RoomId, UserName);
     }
 
     private void NavigateToNamePage()
@@ -119,19 +138,19 @@
 
     private double? CalculateAverage()
     {
-        // Get all valid numeric selections
-        var numericSelections = PlanningService.Participants
+        if (Room == null) return null;
+
+        var numericSelections = Room.Participants
             .Where(p => int.TryParse(p.SelectedPoints, out _))
             .Select(p => int.Parse(p.SelectedPoints))
             .ToList();
 
-        // Calculate the average if there are valid numbers
         if (numericSelections.Any())
         {
             return numericSelections.Average();
         }
 
-        return null; // Return null if no valid numbers
+        return null;
     }
 
     public void Dispose()

@@ -165,24 +165,32 @@
 }
 
 .navigate-button {
-    background-color: #66bb6a;
+    display: inline-block;
+    visibility: visible;
+    background-color: #66bb6a; /* Match action button theme */
     color: white;
     border: none;
     border-radius: 5px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1.25rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-    .navigate-button:hover {
-        background-color: #388e3c;
-    }
+.navigate-button:hover {
+    background-color: #388e3c;
+}
 
-    .navigate-button:focus {
-        outline: none;
-        box-shadow: 0 0 5px #388e3c;
-    }
+.navigate-button:focus {
+    outline: none;
+    box-shadow: 0 0 5px #388e3c;
+}
+
+.navigate-button:disabled {
+    background-color: #ccc; /* Light gray for disabled state */
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 
 .back-button {
     position: absolute;
@@ -215,15 +223,14 @@
     color: #007bff;
 }
 
-/* Landing page styling */
-.welcome-container {
+.landing-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    height: 100vh; /* Full height of the viewport */
     text-align: center;
-    gap: 1rem;
+    gap: 1.5rem; /* Space between elements */
 }
 
 .title {
@@ -237,7 +244,13 @@
     color: #555;
 }
 
-.name-input {
+.input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.name-input, .room-input {
     padding: 0.5rem 1rem;
     font-size: 1rem;
     border: 1px solid #ccc;
@@ -247,7 +260,7 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.action-button, .navigate-button {
+.action-button {
     background-color: #66bb6a;
     color: white;
     border: none;
@@ -258,18 +271,11 @@
     transition: background-color 0.3s ease;
 }
 
-    .action-button:hover, .navigate-button:hover {
+    .action-button:hover {
         background-color: #388e3c;
     }
 
-    .action-button:focus, .navigate-button:focus {
-        outline: none;
-        box-shadow: 0 0 5px #388e3c;
-    }
-
 .error-text {
-    color: #ff5252; /* Bright red for error messages */
+    color: #ff5252;
     font-size: 0.9rem;
-    margin-top: 0.5rem;
-    text-align: center;
 }

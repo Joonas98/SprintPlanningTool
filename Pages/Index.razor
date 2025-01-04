@@ -3,75 +3,85 @@
 @inject PlanningService PlanningService
 @inject NavigationManager NavigationManager
 
-<div class="welcome-container">
+<div class="landing-container">
     <h1 class="title">Welcome to Sprint Planning</h1>
 
-    @if (string.IsNullOrEmpty(UserName))
+    <div class="input-section">
+        <input @bind="UserName" placeholder="Enter your name" class="name-input" />
+        <input @bind="RoomName" placeholder="Enter room name" class="room-input" />
+    </div>
+
+    <button @onclick="JoinOrCreateRoom" class="action-button" disabled="@IsButtonDisabled">
+        Join/Create Room
+    </button>
+
+    @if (ShowError)
     {
-        <input @bind="InputName" placeholder="Enter your name" class="name-input" />
-        <button @onclick="SaveName" class="action-button">Save</button>
-        @if (ShowError)
-        {
-            <p class="error-text">Please enter your name before proceeding.</p>
-        }
-    }
-    else
-    {
-        <p class="greeting-text">Hello, @UserName!</p>
-        <button @onclick="EditName" class="action-button">Change Name</button>
-        <button @onclick="NavigateToPokerTable" class="navigate-button">Go to Poker Table</button>
+        <p class="error-text">@ErrorMessage</p>
     }
 </div>
 
 @code {
-    private string? UserName;  // Stores the cached name
-    private string? InputName; // Stores the new name entered by the user
-    private bool IsInitialized = false; // Tracks whether the component has completed initialization
-    private bool ShowError = false; // Tracks whether to show the error message
+    private string? UserName;
+    private string? RoomName;
+    private bool ShowError = false;
+    private string ErrorMessage = "";
+    private bool IsInitialized = false;
 
-    // Load cached name when the component renders
+    private bool IsButtonDisabled => string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(RoomName);
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && !IsInitialized)
         {
-            UserName = await LocalStorage.GetItemAsync<string>("userName");
+            try
+            {
+                // Load UserName from local storage
+                UserName = await LocalStorage.GetItemAsync<string>("userName");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error accessing local storage: {ex.Message}");
+            }
+
             IsInitialized = true;
-            StateHasChanged(); // Refresh UI after retrieving the name
+            StateHasChanged(); // Update UI after retrieving data
         }
     }
 
-    // Save the new name and update the cache
-    private async Task SaveName()
+    private async Task JoinOrCreateRoom()
     {
-        if (!string.IsNullOrEmpty(InputName))
+        try
         {
-            UserName = InputName;
+            ShowError = false; // Reset error state
+            ErrorMessage = "";
 
-            // Save the name locally
-            await LocalStorage.SetItemAsync("userName", UserName);
+            // Save the user name in local storage
+            if (!string.IsNullOrEmpty(UserName))
+            {
+                await LocalStorage.SetItemAsync("userName", UserName);
+            }
 
-            // Add the participant to the shared service
-            PlanningService.AddParticipant(UserName);
-
-            // Navigate to the Poker Table
-            NavigationManager.NavigateTo("/TablePage");
+            // Check if the room exists
+            var existingRoom = PlanningService.GetRoomByName(RoomName);
+            if (existingRoom != null)
+            {
+                // Join the existing room
+                PlanningService.AddParticipant(existingRoom.RoomId, UserName);
+                NavigationManager.NavigateTo($"/room/{existingRoom.RoomId}");
+            }
+            else
+            {
+                // Create a new room
+                var newRoomId = PlanningService.CreateRoom(RoomName);
+                PlanningService.AddParticipant(newRoomId, UserName);
+                NavigationManager.NavigateTo($"/room/{newRoomId}");
+            }
         }
-        else
+        catch (Exception ex)
         {
             ShowError = true;
+            ErrorMessage = "An error occurred: " + ex.Message;
         }
-    }
-
-    // Allow the user to edit their name
-    private void EditName()
-    {
-        InputName = UserName;
-        UserName = null;
-        ShowError = false; // Reset error when editing
-    }
-
-    private void NavigateToPokerTable()
-    {
-        NavigationManager.NavigateTo("/TablePage");
     }
 }

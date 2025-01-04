@@ -1,30 +1,84 @@
 ﻿public class PlanningService
 {
-	public List<Participant> Participants { get; private set; } = new List<Participant>();
-	public bool PointsRevealed { get; private set; } = false;
+	private readonly Dictionary<string, Room> _rooms = new();
 
 	public event Action? OnStateChanged;
 
-	public void AddParticipant(string name, bool isScrumMaster = false)
+	/// <summary>
+	/// Creates a new room with the specified name.
+	/// </summary>
+	/// <param name="roomName">The name of the room to create.</param>
+	/// <returns>The unique ID of the newly created room.</returns>
+	public string CreateRoom(string roomName)
 	{
-		if (!Participants.Any(p => p.Name == name))
+		var room = new Room
 		{
-			isScrumMaster = isScrumMaster || !Participants.Any(p => p.IsScrumMaster);
+			RoomId = Guid.NewGuid().ToString(),
+			Name = roomName
+		};
 
-			Participants.Add(new Participant
+		_rooms.Add(room.RoomId, room);
+		RaiseStateChanged();
+		return room.RoomId;
+	}
+
+	/// <summary>
+	/// Retrieves a room by its unique ID.
+	/// </summary>
+	/// <param name="roomId">The unique ID of the room.</param>
+	/// <returns>The room object, or null if not found.</returns>
+	public Room? GetRoom(string roomId)
+	{
+		_rooms.TryGetValue(roomId, out var room);
+		return room;
+	}
+
+	/// <summary>
+	/// Retrieves a room by its name.
+	/// </summary>
+	/// <param name="roomName">The name of the room.</param>
+	/// <returns>The room object, or null if not found.</returns>
+	public Room? GetRoomByName(string roomName)
+	{
+		return _rooms.Values.FirstOrDefault(room => string.Equals(room.Name, roomName, StringComparison.OrdinalIgnoreCase));
+	}
+
+	/// <summary>
+	/// Adds a participant to a room.
+	/// </summary>
+	/// <param name="roomId">The ID of the room.</param>
+	/// <param name="name">The name of the participant.</param>
+	/// <param name="isScrumMaster">Whether the participant is a Scrum Master.</param>
+	public void AddParticipant(string roomId, string name, bool isScrumMaster = false)
+	{
+		if (_rooms.TryGetValue(roomId, out var room))
+		{
+			if (!room.Participants.Any(p => p.Name == name))
 			{
-				Name = name,
-				IsScrumMaster = isScrumMaster,
-				SelectedPoints = null
-			});
+				isScrumMaster = isScrumMaster || !room.Participants.Any(p => p.IsScrumMaster);
 
-			RaiseStateChanged();
+				room.Participants.Add(new Participant
+				{
+					Name = name,
+					IsScrumMaster = isScrumMaster,
+					SelectedPoints = null
+				});
+
+				RaiseStateChanged();
+			}
 		}
 	}
 
-	public void UpdateParticipantPoints(string name, string? points)
+	/// <summary>
+	/// Updates the selected points for a participant.
+	/// </summary>
+	/// <param name="roomId">The ID of the room.</param>
+	/// <param name="name">The name of the participant.</param>
+	/// <param name="points">The points selected by the participant.</param>
+	public void UpdateParticipantPoints(string roomId, string name, string? points)
 	{
-		var participant = Participants.FirstOrDefault(p => p.Name == name);
+		var room = GetRoom(roomId);
+		var participant = room?.Participants.FirstOrDefault(p => p.Name == name);
 		if (participant != null)
 		{
 			participant.SelectedPoints = points;
@@ -32,31 +86,45 @@
 		}
 	}
 
-	public void RevealPoints(string name)
+	/// <summary>
+	/// Reveals the points for all participants in a room.
+	/// </summary>
+	/// <param name="roomId">The ID of the room.</param>
+	/// <param name="name">The name of the Scrum Master revealing the points.</param>
+	public void RevealPoints(string roomId, string name)
 	{
-		if (Participants.Any(p => p.Name == name && p.IsScrumMaster))
+		var room = GetRoom(roomId);
+		if (room != null && room.Participants.Any(p => p.Name == name && p.IsScrumMaster))
 		{
-			PointsRevealed = true;
+			room.PointsRevealed = true;
 			RaiseStateChanged();
 		}
 	}
 
-	public void Reset(string name)
+	/// <summary>
+	/// Resets the points for all participants in a room.
+	/// </summary>
+	/// <param name="roomId">The ID of the room.</param>
+	/// <param name="name">The name of the Scrum Master resetting the points.</param>
+	public void ResetRoom(string roomId, string name)
 	{
-		if (Participants.Any(p => p.Name == name && p.IsScrumMaster))
+		var room = GetRoom(roomId);
+		if (room != null && room.Participants.Any(p => p.Name == name && p.IsScrumMaster))
 		{
-			foreach (var participant in Participants)
+			foreach (var participant in room.Participants)
 			{
 				participant.SelectedPoints = null;
 			}
-			PointsRevealed = false;
+			room.PointsRevealed = false;
 			RaiseStateChanged();
 		}
 	}
 
+	/// <summary>
+	/// Invokes the state change event to notify subscribers.
+	/// </summary>
 	private void RaiseStateChanged()
 	{
-		// Safely invoke the state change event
 		OnStateChanged?.Invoke();
 	}
 }
