@@ -11,6 +11,11 @@
 	/// <returns>The unique ID of the newly created room.</returns>
 	public string CreateRoom(string roomName)
 	{
+		if (_rooms.Values.Any(r => string.Equals(r.Name, roomName, StringComparison.OrdinalIgnoreCase)))
+		{
+			throw new InvalidOperationException($"A room with the name '{roomName}' already exists.");
+		}
+
 		var room = new Room
 		{
 			RoomId = Guid.NewGuid().ToString(),
@@ -21,6 +26,7 @@
 		RaiseStateChanged();
 		return room.RoomId;
 	}
+
 
 	/// <summary>
 	/// Retrieves a room by its unique ID.
@@ -40,7 +46,8 @@
 	/// <returns>The room object, or null if not found.</returns>
 	public Room? GetRoomByName(string roomName)
 	{
-		return _rooms.Values.FirstOrDefault(room => string.Equals(room.Name, roomName, StringComparison.OrdinalIgnoreCase));
+		return _rooms.Values.FirstOrDefault(room =>
+			string.Equals(room.Name, roomName, StringComparison.OrdinalIgnoreCase));
 	}
 
 	/// <summary>

@@ -1,13 +1,13 @@
-﻿@page "/room/{RoomId}"
+﻿@page "/room/{RoomName}"
 @inject NavigationManager NavigationManager
 @inject PlanningService PlanningService
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
-<button class="back-button" @onclick="NavigateToNamePage">Back</button>
+<button class="back-button" @onclick="ReturnToLandingPage">Back</button>
 
-<h1 class="title">Sprint Planning</h1>
+<h1 class="title">Sprint Planning: @RoomName</h1>
 
-<p>Debug - Cards Disabled: @(Room?.PointsRevealed == true ? "Yes" : "No")</p>
+<p>Debug - Room Exists: @(Room != null ? "Yes" : "No")</p>
 
 <div class="main-container flex-container">
     <table class="participants-table">
@@ -82,31 +82,38 @@
             </button>
         }
     </div>
-
 </div>
 
 @code {
     [Parameter]
-    public string RoomId { get; set; } = "";
+    public string RoomName { get; set; } = "";
 
-    private Room? Room => PlanningService.GetRoom(RoomId);
+    private Room? Room => PlanningService.GetRoomByName(RoomName);
     private string? UserName; // Name retrieved from local storage
     private bool IsScrumMaster => Room?.Participants.Any(p => p.Name == UserName && p.IsScrumMaster) ?? false;
     private double? AverageStoryPoints => CalculateAverage();
 
     protected override async Task OnInitializedAsync()
     {
-        UserName = await LocalStorage.GetItemAsync<string>("userName");
+        // Debug Room Name
+        Console.WriteLine($"Debug - Navigated RoomName: {RoomName}");
 
+        // Retrieve the user name from local storage
+        UserName = await LocalStorage.GetItemAsync<string>("userName");
+        Console.WriteLine($"Debug - Retrieved UserName: {UserName}");
+
+        // Validate the room
         if (Room == null)
         {
+            Console.WriteLine("Debug - Room not found, redirecting to landing page.");
             NavigationManager.NavigateTo("/");
             return;
         }
 
+        // Add participant if not already present
         if (!string.IsNullOrEmpty(UserName) && !Room.Participants.Any(p => p.Name == UserName))
         {
-            PlanningService.AddParticipant(RoomId, UserName);
+            PlanningService.AddParticipant(Room.RoomId, UserName);
         }
 
         // Subscribe to state changes
@@ -115,23 +122,29 @@
 
     private void SelectPoint(string point)
     {
-        if (!string.IsNullOrEmpty(RoomId) && !string.IsNullOrEmpty(UserName))
+        if (Room != null && !string.IsNullOrEmpty(UserName))
         {
-            PlanningService.UpdateParticipantPoints(RoomId, UserName, point);
+            PlanningService.UpdateParticipantPoints(Room.RoomId, UserName, point);
         }
     }
 
     private void RevealPoints()
     {
-        PlanningService.RevealPoints(RoomId, UserName);
+        if (Room != null && !string.IsNullOrEmpty(UserName))
+        {
+            PlanningService.RevealPoints(Room.RoomId, UserName);
+        }
     }
 
     private void ResetPoints()
     {
-        PlanningService.ResetRoom(RoomId, UserName);
+        if (Room != null && !string.IsNullOrEmpty(UserName))
+        {
+            PlanningService.ResetRoom(Room.RoomId, UserName);
+        }
     }
 
-    private void NavigateToNamePage()
+    private void ReturnToLandingPage()
     {
         NavigationManager.NavigateTo("/");
     }

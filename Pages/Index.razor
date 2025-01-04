@@ -66,16 +66,14 @@
             var existingRoom = PlanningService.GetRoomByName(RoomName);
             if (existingRoom != null)
             {
-                // Join the existing room
-                PlanningService.AddParticipant(existingRoom.RoomId, UserName);
-                NavigationManager.NavigateTo($"/room/{existingRoom.RoomId}");
+                // Navigate to the existing room using its name
+                NavigationManager.NavigateTo($"/room/{Uri.EscapeDataString(RoomName)}");
             }
             else
             {
-                // Create a new room
-                var newRoomId = PlanningService.CreateRoom(RoomName);
-                PlanningService.AddParticipant(newRoomId, UserName);
-                NavigationManager.NavigateTo($"/room/{newRoomId}");
+                // Create a new room and navigate to it using its name
+                PlanningService.CreateRoom(RoomName);
+                NavigationManager.NavigateTo($"/room/{Uri.EscapeDataString(RoomName)}");
             }
         }
         catch (Exception ex)
@@ -84,4 +82,5 @@
             ErrorMessage = "An error occurred: " + ex.Message;
         }
     }
+
 }
